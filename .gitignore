@@ -55,5 +55,4 @@ dkms.conf
 int
 inter
 interpreter.cpp
-include/
 common.c

@@ -2,24 +2,53 @@
 #include <string.h>
 #include <stdlib.h>
 
-// We need to open the file, and read it to memory.
-const char *ReadToBuffer(const char *filename){
+#include "common.h"
+
+// this struct is defined in common.h
+struct filedata fd;
+
+char *ReadToBuffer(char const *filename){
 	char *buf = 0;
-	unsigned int len; // Characters inside the file
 	FILE *f = fopen(filename, "rb");
 	if (!f) {
 		puts("Ooopsies! File not found");	
 		exit(1);
 	}
 	fseek(f, 0, SEEK_END);
-	len = ftell(f);
-	printf("%d\n", len);
+	fd.len = ftell(f);
 	fseek(f, 0, SEEK_SET);
 	
-	buf = malloc(len);
-	if (buf) fread(buf, 1, len, f);
+	buf = malloc(fd.len);
+	if (buf) fread(buf, 1, fd.len, f);
 	fclose(f);
-	
 	return buf;
 }
 
+
+char *lex(char *buf) {
+	char *newbuf = 0;
+	// newbuf = malloc(len - count(buf));
+	size_t i = 0;
+	size_t j = 0;
+	while(i < fd.len) {
+		switch (buf[i]){
+			// ignore inline comments.
+			case '#':
+				while(buf[i] != 0xa) ++i;
+			case 0xa:
+				fd.lines++;
+			case 0x9:
+				i++;
+				break;
+			default:
+				printf("%c", buf[i]);
+				i++;
+		}
+	}
+	printf("%d\n", fd.lines);
+	free(buf);
+	return newbuf;
+}
+void RunLex(const char *filename){
+	lex(ReadToBuffer(filename));
+}

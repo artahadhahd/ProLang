@@ -1,4 +1,5 @@
 #pragma once
+#if 0
 // for feature use lol
 #if defined(__linux__)
 	#define PLATFORM 'l'
@@ -8,6 +9,9 @@
 #ifndef PLATFORM
 	#define PLATFROM 'u'
 #endif
+#endif
 
-const char *ReadToBuffer(const char *filename);
+
+// const char *ReadToBuffer(const char *filename);
+void RunLex(char const *filename);
 
