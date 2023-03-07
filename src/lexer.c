@@ -33,10 +33,10 @@ char *lex(char *buf) {
 		switch (buf[i]){
 			// ignore inline comments.
 			case '#':
-				if (buf[++i] == '#') {
-					while (buf[i] != '/') {
+				if (buf[++i] == '>') {
+					while (buf[i] != '<') {
 						if (buf[i] == '\0') {
-							printf("\n%s%s line %d: %s\nError while parsing multline comments; perhaps forgot a '/'?\n%s", 
+							printf("\n%s%s line %d: %s\nError while parsing multline comments; perhaps forgot a '<'?\n%s", 
 								BLUE, fd.filename, fd.lines, RED, WHITE);
 							exit(1);
 						}
@@ -73,6 +73,7 @@ char *lex(char *buf) {
 	free(buf);
 	return "true";
 }
+
 void RunLex(char const *filename) {
 	lex(ReadToBuffer(filename));
 }
