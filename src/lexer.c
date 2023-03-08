@@ -42,7 +42,7 @@ size_t parse_comment(char *buf, size_t i) {
 		}
 		i++;
 	}
-	while(buf[i] != 0xa && buf[i] != '\0') {
+	while(buf[i] != 0xa && i < fd.len ) {
 		i++;
 		fd.comments_char++;
 	}
