@@ -8,6 +8,6 @@ int main(int argc, char const *argv[]){
 		return -1;
 	}
 	RunLex(argv[1]);
-	puts(""); // just to make things more easy to read
+	puts(""); // just to make things easier to read
 	return 0;
 }

@@ -3,7 +3,6 @@ struct filedata {
 	size_t len;
 	size_t lines;
 	size_t comments_char;
-	size_t comments_line;
 };
 
 // colors

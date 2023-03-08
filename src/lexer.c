@@ -25,46 +25,46 @@ char *ReadToBuffer(char const *filename){
 	return buf;
 }
 
+size_t parse_comment(char *buf, size_t i) {
+	if (buf[++i] == '>') {
+		while (buf[i] != '<') {
+			if (buf[i] == '\0') {
+				free(buf); // almost forgot about this one!
+				printf("\n%s%s line %d: %s\nError while parsing multline comments; perhaps forgot a '<'?\nIf this is not the case, check for null characters\n%s", 
+					BLUE, fd.filename, fd.lines, RED, WHITE);
+				exit(1);
+			}
+			if (buf[i] == 0xa) {
+				fd.lines++;
+			}
+			i++;
+			fd.comments_char++;
+		}
+		i++;
+	}
+	while(buf[i] != 0xa && buf[i] != '\0') {
+		i++;
+		fd.comments_char++;
+	}
+	return i;
+}
 
 char *lex(char *buf) {
 	size_t i = 0;
-	size_t j = 0;
+	// size_t j = 0;
 	while(i < fd.len) {
 		switch (buf[i]){
-			// ignore inline comments.
-			case '#':
-				if (buf[++i] == '>') {
-					while (buf[i] != '<') {
-						if (buf[i] == '\0') {
-							printf("\n%s%s line %d: %s\nError while parsing multline comments; perhaps forgot a '<'?\n%s", 
-								BLUE, fd.filename, fd.lines, RED, WHITE);
-							exit(1);
-						}
-						if (buf[i] == 0xa) {
-							fd.comments_line++;
-							fd.lines++;
-						}
-						i++;
-						fd.comments_char++;
-					}
-					i++;
-					break; // this break is especially important
-				}
-				fd.comments_char++;
-				fd.comments_line++;
-				while(buf[i] != 0xa) {
-					i++;
-					fd.comments_char++;
-				}
-				// --i;
-			case 0xa:
-				fd.lines++;
-			case 0x9:
-				i++;
-				break;
-			default:
-				printf("%c", buf[i]);
-				i++;
+		case '#':
+			i = parse_comment(buf, i);
+			fd.comments_char++;
+		case 0xa:
+			fd.lines++;
+		case 0x9:
+			i++;
+			break;
+		default:
+			printf("%c", buf[i]);
+			i++;
 		}
 	}
 	// this is how many characters with actual code inside them.
