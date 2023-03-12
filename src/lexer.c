@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 
 #include "common.h"
@@ -7,11 +6,13 @@
 // this struct is defined in common.h
 struct filedata fd;
 
-char *ReadToBuffer(char const *filename){
+// Read file content to buffer for fast data reading
+char *ReadToBuffer(char const *filename)
+{
 	char *buf = 0;
 	FILE *f = fopen(filename, "rb");
 	if (!f) {
-		puts("Ooopsies! File not found");	
+		printf("File '%s' not found\n", filename);
 		exit(1);
 	}
 	fd.filename = filename;
@@ -25,55 +26,68 @@ char *ReadToBuffer(char const *filename){
 	return buf;
 }
 
-size_t parse_comment(char *buf, size_t i) {
+size_t parse_comment(char *buf, size_t i)
+{
+	/* block comments */
 	if (buf[++i] == '>') {
 		while (buf[i] != '<') {
-			if (buf[i] == '\0') {
-				free(buf); // almost forgot about this one!
-				printf("\n%s%s line %d: %s\nError while parsing multline comments; perhaps forgot a '<'?\nIf this is not the case, check for null characters\n%s", 
-					BLUE, fd.filename, fd.lines, RED, WHITE);
-				exit(1);
-			}
-			if (buf[i] == 0xa) {
+			if (buf[i] == '\0')
+				goto E_EXIT_F;
+			if (buf[i] == '\n')
 				fd.lines++;
-			}
 			i++;
 			fd.comments_char++;
 		}
 		i++;
 	}
-	while(buf[i] != 0xa && i < fd.len ) {
+	// inline comments 
+	while(buf[i] != '\n' && i < fd.len && buf[i] != '\0') {
 		i++;
 		fd.comments_char++;
 	}
 	return i;
+E_EXIT_F:
+	free(buf); // almost forgot about this one!
+	printf("\n%s%s line %zu: %s\nError while parsing multline comments;" 
+	"perhaps forgot a '<'?\n"
+	"If this is not the case, check for null characters\n%s", 
+		BLUE, fd.filename, fd.lines, RED, WHITE);
+	exit(1);
 }
 
-char *lex(char *buf) {
+void parse_assign(char *buf, size_t i) {
+	while(i != 0 && buf[i] != '\n') {
+		--i;
+		if (buf[i] == ' ' || buf[i] == '\n') 
+			continue;
+	}
+}
+char *lex(char *buf)
+{
 	size_t i = 0;
-	// size_t j = 0;
 	while(i < fd.len) {
 		switch (buf[i]){
 		case '#':
 			i = parse_comment(buf, i);
 			fd.comments_char++;
-		case 0xa:
+		case '\n':
 			fd.lines++;
-		case 0x9:
+		case '\t':
 			i++;
 			break;
+		case '=':
+			parse_assign(buf, i);
 		default:
-			printf("%c", buf[i]);
+			// printf("%c", buf[i]);
 			i++;
 		}
 	}
-	// this is how many characters with actual code inside them.
 	// printf("%d\n", fd.len - fd.comments_char-fd.comments_line-1);
-	// printf("%s\n", newbuf);
 	free(buf);
 	return "true";
 }
 
-void RunLex(char const *filename) {
+void RunLex(char const *filename)
+{
 	lex(ReadToBuffer(filename));
 }
