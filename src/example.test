@@ -1,3 +1,6 @@
-a = 13;
+#> a lot of comments <a = 13;
 d = 12;
 word = 15;
+# jijdei jdijwad more comments \
+#> hi this
+is a comment too lol <
