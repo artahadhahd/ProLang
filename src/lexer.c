@@ -6,7 +6,7 @@
 // this struct is defined in common.h
 struct filedata fd;
 
-// Read file content to buffer for fast data reading
+// Read file content to buffer for faser I/O
 char *ReadToBuffer(char const *filename)
 {
 	char *buf = 0;
@@ -21,16 +21,19 @@ char *ReadToBuffer(char const *filename)
 	fseek(f, 0, SEEK_SET);
 
 	buf = malloc(fd.len);
-	if (buf) fread(buf, 1, fd.len, f);
+	if (buf) 
+		fread(buf, 1, fd.len, f);
 	fclose(f);
 	return buf;
 }
 
+// the program skips over comments with this function.
 size_t parse_comment(char *buf, size_t i)
 {
 	/* block comments */
 	if (buf[++i] == '>') {
 		while (buf[i] != '<') {
+			// this is for when comment is not terminated or there is a null character in the comment.
 			if (buf[i] == '\0')
 				goto E_EXIT_F;
 			if (buf[i] == '\n')
@@ -41,26 +44,36 @@ size_t parse_comment(char *buf, size_t i)
 		i++;
 	}
 	// inline comments 
-	while(buf[i] != '\n' && i < fd.len && buf[i] != '\0') {
-		i++;
-		fd.comments_char++;
+	else {
+		while(buf[i] != '\n' && i < fd.len && buf[i] != '\0') {
+			i++;
+			fd.comments_char++;
+		}
 	}
-	return i;
+	return --i;
 E_EXIT_F:
-	free(buf); // almost forgot about this one!
-	printf("\n%s%s line %zu: %s\nError while parsing multline comments;" 
+	free(buf);
+	// colors are all defined in common.h (ANSI escape codes)
+	printf("\n%s%s line %zu: %s\n"
+	"Error while parsing multline comments;" 
 	"perhaps forgot a '<'?\n"
-	"If this is not the case, check for null characters\n%s", 
-		BLUE, fd.filename, fd.lines, RED, WHITE);
+	"If this is not the case, check for null characters in your code\n%s", 
+		BLUE, fd.filename, ++fd.lines, RED, WHITE);
 	exit(1);
 }
 
-void parse_assign(char *buf, size_t i) {
-	while(i != 0 && buf[i] != '\n') {
-		--i;
-		if (buf[i] == ' ' || buf[i] == '\n') 
+// TODO: Fix the logic here.
+char *parse_assign(char *buf, size_t i)
+{
+	while (buf[i] != '\n') {
+		i--;
+		if (buf[i] == ' ' || buf[i] == '\t') 
 			continue;
+		if (i == 1) /* if something is defined on the top of the file, then it will go out of bounds. */
+			return &buf[--i];
+		return &buf[i];
 	}
+	return "0";
 }
 char *lex(char *buf)
 {
@@ -76,9 +89,9 @@ char *lex(char *buf)
 			i++;
 			break;
 		case '=':
-			parse_assign(buf, i);
+		 	printf("%s\n", parse_assign(buf, i));
 		default:
-			// printf("%c", buf[i]);
+			printf("%c", buf[i]);
 			i++;
 		}
 	}

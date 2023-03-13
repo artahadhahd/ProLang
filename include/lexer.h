@@ -11,7 +11,4 @@
 #endif
 #endif
 
-
-// const char *ReadToBuffer(const char *filename);
 void RunLex(char const *filename);
-
